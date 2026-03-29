@@ -47,8 +47,8 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh '''
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                        docker push ''' + env.BACKEND_IMAGE + '''
-                        docker push ''' + env.FRONTEND_IMAGE + '''
+                        docker push mrbiggc/techpathway-backend:${BUILD_NUMBER}
+                        docker push mrbiggc/techpathway-frontend:${BUILD_NUMBER}
                         docker logout
                     '''
                 }
