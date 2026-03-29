@@ -2,8 +2,9 @@ pipeline {
     agent any
 
     environment {
-        BACKEND_IMAGE  = "techpathway-backend:${BUILD_NUMBER}"
-        FRONTEND_IMAGE = "techpathway-frontend:${BUILD_NUMBER}"
+        DOCKERHUB_USER  = "mrbiggc"
+        BACKEND_IMAGE   = "${DOCKERHUB_USER}/techpathway-backend:${BUILD_NUMBER}"
+        FRONTEND_IMAGE  = "${DOCKERHUB_USER}/techpathway-frontend:${BUILD_NUMBER}"
     }
 
     stages {
@@ -38,6 +39,19 @@ pipeline {
                     docker ps --filter name=frontend-test-${BUILD_NUMBER} --filter status=running | grep frontend-test-${BUILD_NUMBER} && echo 'Frontend OK'
                     docker stop frontend-test-${BUILD_NUMBER}
                 """
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh """
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        docker push ${BACKEND_IMAGE}
+                        docker push ${FRONTEND_IMAGE}
+                        docker logout
+                    """
+                }
             }
         }
     }
