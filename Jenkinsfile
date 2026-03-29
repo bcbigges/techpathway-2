@@ -21,7 +21,12 @@ pipeline {
 
         stage('Test Backend') {
             steps {
-                sh "docker run --rm ${BACKEND_IMAGE} node -e \"require('./index')\""
+                sh """
+                    docker run -d --name backend-test-${BUILD_NUMBER} ${BACKEND_IMAGE}
+                    sleep 5
+                    docker exec backend-test-${BUILD_NUMBER} wget -q -O- http://localhost:8080 && echo 'Backend OK'
+                    docker stop backend-test-${BUILD_NUMBER}
+                """
             }
         }
 
@@ -34,6 +39,8 @@ pipeline {
 
     post {
         always {
+            sh "docker stop backend-test-${BUILD_NUMBER} || true"
+            sh "docker rm backend-test-${BUILD_NUMBER} || true"
             sh "docker rmi ${BACKEND_IMAGE} || true"
             sh "docker rmi ${FRONTEND_IMAGE} || true"
         }
