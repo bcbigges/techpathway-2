@@ -54,6 +54,18 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy to AWS') {
+            steps {
+                sh """
+                    ssh -i /var/jenkins_home/.ssh/tech-challenge-key.pem -o StrictHostKeyChecking=no ec2-user@44.214.119.11 '
+                        sudo docker stop \$(sudo docker ps -q) || true
+                        sudo docker run -d -p 8080:8080 mrbiggc/techpathway-backend:${BUILD_NUMBER}
+                        sudo docker run -d -p 3000:3000 mrbiggc/techpathway-frontend:${BUILD_NUMBER}
+                    '
+                """
+            }
+        }
     }
 
     post {
